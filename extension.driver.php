@@ -3,7 +3,7 @@
 	class extension_db_charsetter extends Extension{
 
 		const FIELD_REGEX		= '/(char)|(text)|(enum)|(set)/';
-		const CHARSET_REGEX		= '/(?!utf8_unicode)/';
+		const CHARSET_REGEX		= '/(utf8)/';
 
 		public $tables			= array();
 		public $table_count		= 0;
@@ -70,6 +70,7 @@
 
 		private function __runCheck(){
 
+			$this->__retreiveTables();
 			$this->__checkFields();
 
 			$this->check_message = "Check complete. " . $this->field_count . " total fields need converting from " . $this->table_count . " tables";
@@ -96,7 +97,7 @@
 			{
 				foreach($this->tables as $table)
 				{
-					$table_columns = Symphony::Database()->query('
+					$table_columns = Symphony::Database()->fetch('
 						SHOW FULL COLUMNS IN ' . $table . '
 					');
 
@@ -104,7 +105,7 @@
 
 					foreach($table_columns as $row)
 					{
-						if(preg_match(FIELD_REGEX, $row['Type']) && preg_match(CHARSET_REGEX, $row['Collation']))
+						if(preg_match(self::FIELD_REGEX, $row['Type']) && !preg_match(self::CHARSET_REGEX, $row['Collation']))
 						{
 							$this->field_count++;
 							$count++;
@@ -144,7 +145,7 @@
 
 					foreach($table_explain as $row)
 					{
-						if(preg_match(FIELD_REGEX, $row['Type']))
+						if(preg_match(self::FIELD_REGEX, $row['Type']))
 						{
 							$fields[$table][$row['Field']] = $row['Type'] . " " . (($row['Null'] == "YES")? "": "NOT ") . "NULL " . ((!is_null($row['Default']))? "DEFAULT '" . $row['Default'] . "'": "");
 						}
