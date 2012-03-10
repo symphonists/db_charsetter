@@ -141,7 +141,7 @@
 			{
 				foreach($show_tables as $table)
 				{
-					$this->tables[] = $table['Tables_in_symphony_integration'];
+					$this->tables[] = reset($table);
 				}
 				unset($show_tables);
 			}
