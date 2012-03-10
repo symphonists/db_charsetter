@@ -14,6 +14,10 @@
 		public $message			= null;
 		public $check_message	= null;
 
+		/**
+		 * Subscibe to delegates
+		 * @return array
+		 */
 		public function getSubscribedDelegates(){
 			return array(
 				array(
@@ -25,6 +29,9 @@
 			);
 		}
 
+		/**
+		 * Append a fieldset to the preferences page
+		 */
 		public function appendPreferences($context){
 
 			if($_POST && isset($_POST['action']['check-status']))
@@ -70,14 +77,18 @@
 
 		private function __runCheck(){
 
+			Symphony::Log()->writeToLog('Database Character Setter: Running check.', true);
 			$this->__retreiveTables();
 			$this->__checkFields();
 
 			$this->check_message = "Check complete. " . $this->field_count . " total fields need converting from " . $this->table_count . " tables";
+
+			Symphony::Log()->writeToLog('Database Character Setter: ' . $this->check_message, true);
 		}
 
 		private function __runChange(){
 
+			Symphony::Log()->writeToLog('Database Character Setter: Running change.', true);
 			$this->__retreiveTables();
 
 			$this->__retreiveFields();
@@ -88,7 +99,9 @@
 			$this->__repairFields();
 			$this->__optimize();
 
-			$this->message = "Character Set Migration complete. " . $this->table_count . " edited, with " . $this->fields_count . " fields in total.";
+			$this->message = "Character Set Migration complete. " . $this->table_count . " tables edited, with " . $this->field_count . " fields in total.";
+
+			Symphony::Log()->writeToLog('Database Character Setter: ' . $this->message, true);
 		}
 
 		private function __checkFields(){
@@ -115,6 +128,7 @@
 					if($count > 0) $this->table_count++;
 				}
 			}
+
 		}
 
 		private function __retreiveTables(){
@@ -161,18 +175,21 @@
 				{
 					if(!is_null($collation))
 					{
-						Symphony::Database()->query('
-							ALTER TABLE ' . $table . '
-							CONVERT TO CHARACTER SET ' . $set . '
-						');
+						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set;
+
+						if(!Symphony::Database()->query($sql))
+						{
+							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
+						}
 					}
 					elseif($collation == true)
 					{
-						Symphony::Database()->query('
-							ALTER TABLE ' . $table . '
-							CONVERT TO CHARACTER SET ' . $set . '
-							COLLATE utf8_unicode_ci
-						');
+						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
+
+						if(!Symphony::Database()->query($sql))
+						{
+							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
+						}
 					}
 				}
 			}
@@ -182,11 +199,12 @@
 		{
 			$dbname = Symphony::Configuration()->get('db', 'database');
 
-			return Symphony::Database()->query('
-				ALTER DATABASE ' . $dbname . '
-				CHARACTER SET ' . $set . '
-				COLLATE utf8_unicode_ci
-			');
+			$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
+
+			if(!Symphony::Database()->query($sql))
+			{
+				Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
+			}
 		}
 
 		private function __repairFields(){
@@ -196,10 +214,12 @@
 				{
 					foreach($fields as $field => $options)
 					{
-						Symphony::Database()->query('
-							ALTER TABLE ' . $table . '
-							MODIFY ' . $field . ' ' . $options . '
-						');
+						$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options;
+
+						if(!Symphony::Database()->query($sql))
+						{
+							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
+						}
 					}
 				}
 			}
