@@ -214,7 +214,7 @@
 				{
 					foreach($fields as $field => $options)
 					{
-						$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options;
+						$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET utf8 COLLATION utf8_unicode_ci';
 
 						if(!Symphony::Database()->query($sql))
 						{
