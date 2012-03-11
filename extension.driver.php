@@ -19,7 +19,6 @@
 		 * @return array
 		 */
 		public function getSubscribedDelegates(){
-
 			return array(
 				array(
 					'page' => '/system/preferences/',
@@ -35,14 +34,17 @@
 		 */
 		public function appendPreferences($context){
 
-			if($_POST && isset($_POST['action']['check-status'])){
+			if($_POST && isset($_POST['action']['check-status']))
+			{
 				$this->__runCheck();
 			}
-			else if($_POST && isset($_POST['action']['change-charset'])){
+			else if($_POST && isset($_POST['action']['change-charset']))
+			{
 				$this->__runCheck();
 				$this->__runChange();
 			}
-			else{
+			else
+			{
 				$this->tables = array();
 				$this->fields = array();
 			}
@@ -59,11 +61,13 @@
 
 			$div->appendChild(new XMLElement('p', __('Use this at your own risk. <strong>Backup your database first!</strong>'), array('class' => 'help')));
 
-			if(!is_null($this->check_message)){
+			if(!is_null($this->check_message))
+			{
 				$div->appendChild(new XMLElement('p', __($this->check_message)));
 			}
 
-			if(!is_null($this->message)){
+			if(!is_null($this->message))
+			{
 				$div->appendChild(new XMLElement('p', __($this->message)));
 			}
 
@@ -102,21 +106,25 @@
 
 		private function __checkFields(){
 
-			if(!empty($this->tables)){
-
-				foreach($this->tables as $table){
+			if(!empty($this->tables))
+			{
+				foreach($this->tables as $table)
+				{
 					$table_columns = Symphony::Database()->fetch('
 						SHOW FULL COLUMNS IN ' . $table . '
 					');
 
 					$count = 0;
 
-					foreach($table_columns as $row){
-						if(preg_match(self::FIELD_REGEX, $row['Type']) && !preg_match(self::CHARSET_REGEX, $row['Collation'])){
+					foreach($table_columns as $row)
+					{
+						if(preg_match(self::FIELD_REGEX, $row['Type']) && !preg_match(self::CHARSET_REGEX, $row['Collation']))
+						{
 							$this->field_count++;
 							$count++;
 						}
 					}
+
 					if($count > 0) $this->table_count++;
 				}
 			}
@@ -129,9 +137,10 @@
 				SHOW TABLES
 			');
 
-			if(!empty($show_tables)){
-
-				foreach($show_tables as $table){
+			if(!empty($show_tables))
+			{
+				foreach($show_tables as $table)
+				{
 					$this->tables[] = reset($table);
 				}
 				unset($show_tables);
@@ -140,16 +149,18 @@
 
 		private function __retreiveFields(){
 
-			if(!empty($this->tables)){
-
-				foreach($this->tables as $table){
-
+			if(!empty($this->tables))
+			{
+				foreach($this->tables as $table)
+				{
 					$table_explain = Symphony::Database()->fetch('
 						EXPLAIN ' . $table . '
 					');
 
-					foreach($table_explain as $row){
-						if(preg_match(self::FIELD_REGEX, $row['Type'])){
+					foreach($table_explain as $row)
+					{
+						if(preg_match(self::FIELD_REGEX, $row['Type']))
+						{
 							$fields[$table][$row['Field']] = $row['Type'] . " " . (($row['Null'] == "YES")? "": "NOT ") . "NULL " . ((!is_null($row['Default']))? "DEFAULT '" . $row['Default'] . "'": "");
 						}
 					}
@@ -158,22 +169,25 @@
 		}
 
 		private function __convertCharSet($set, $collation = null){
-
-			if(!empty($this->tables)){
-
-				foreach($this->tables as $table){
-
-					if(is_null($collation)){
+			if(!empty($this->tables))
+			{
+				foreach($this->tables as $table)
+				{
+					if(is_null($collation))
+					{
 						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set;
 
-						if(!Symphony::Database()->query($sql)){
+						if(!Symphony::Database()->query($sql))
+						{
 							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 						}
 					}
-					elseif($collation == true){
+					elseif($collation == true)
+					{
 						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
 
-						if(!Symphony::Database()->query($sql)){
+						if(!Symphony::Database()->query($sql))
+						{
 							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 						}
 					}
@@ -181,25 +195,29 @@
 			}
 		}
 
-		private function __convertDatabase($set){
-
+		private function __convertDatabase($set)
+		{
 			$dbname = Symphony::Configuration()->get('db', 'database');
+
 			$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
 
-			if(!Symphony::Database()->query($sql)){
+			if(!Symphony::Database()->query($sql))
+			{
 				Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 			}
 		}
 
 		private function __repairFields(){
-
-			if(!empty($this->fields)){
-
-				foreach($this->fields as $table => $fields){
-
-					foreach($fields as $field => $options){
+			if(!empty($this->fields))
+			{
+				foreach($this->fields as $table => $fields)
+				{
+					foreach($fields as $field => $options)
+					{
 						$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET utf8 COLLATION utf8_unicode_ci';
-						if(!Symphony::Database()->query($sql)){
+
+						if(!Symphony::Database()->query($sql))
+						{
 							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 						}
 					}
@@ -207,11 +225,12 @@
 			}
 		}
 
-		private function __optimize(){
-
-			if(!empty($tables)){
-
-				foreach($tables as $table){
+		private function __optimize()
+		{
+			if(!empty($tables))
+			{
+				foreach($tables as $table)
+				{
 					Symphony::Database()->query('
 						OPTIMIZE TABLE ' . $table . '
 					');
