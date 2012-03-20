@@ -173,7 +173,7 @@
 			{
 				foreach($this->tables as $table)
 				{
-					if(!is_null($collation))
+					if(is_null($collation))
 					{
 						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set;
 
