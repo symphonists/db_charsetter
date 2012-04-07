@@ -95,7 +95,7 @@
 
 			$this->__convertCharSet('binary');
 			$this->__convertDatabase('utf8');
-			$this->__convertCharSet('utf8', true);
+			$this->__convertCharSet('utf8', 'utf8_unicode_ci');
 			$this->__repairFields();
 			$this->__optimize();
 
@@ -168,12 +168,12 @@
 			}
 		}
 
-		private function __convertCharSet($set, $collation = null){
+		private function __convertCharSet($set, $collation = NULL){
 			if(!empty($this->tables))
 			{
 				foreach($this->tables as $table)
 				{
-					if(is_null($collation))
+					if(!isset($collation))
 					{
 						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set;
 
@@ -182,9 +182,9 @@
 							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 						}
 					}
-					elseif($collation == true)
+					else
 					{
-						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
+						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set . ' COLLATE ' . $collation;
 
 						if(!Symphony::Database()->query($sql))
 						{
