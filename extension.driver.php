@@ -176,20 +176,14 @@
 					if(!isset($collation))
 					{
 						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set;
-
-						if(!Symphony::Database()->query($sql))
-						{
-							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
-						}
 					}
 					else
 					{
 						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set . ' COLLATE ' . $collation;
-
-						if(!Symphony::Database()->query($sql))
-						{
-							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
-						}
+					}
+					if(!Symphony::Database()->query($sql))
+					{
+						Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 					}
 				}
 			}
