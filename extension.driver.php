@@ -94,7 +94,7 @@
 			$this->__retreiveFields();
 
 			$this->__convertCharSet('binary');
-			$this->__setDatabaseCharSet('utf8');
+			$this->__setDatabaseCharSet('utf8', 'utf8_unicode_ci');
 			$this->__convertCharSet('utf8', 'utf8_unicode_ci');
 			$this->__repairFields();
 			$this->__optimize();
@@ -189,12 +189,18 @@
 			}
 		}
 
-		private function __setDatabaseCharSet($set)
+		private function __setDatabaseCharSet($set, $collation = NULL)
 		{
 			$dbname = Symphony::Configuration()->get('db', 'database');
 
-			$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
-
+			if(!isset($collation))
+			{
+				$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set;
+			}
+			else
+			{
+				$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set . ' COLLATE ' . $collation;
+			}
 			if(!Symphony::Database()->query($sql))
 			{
 				Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
