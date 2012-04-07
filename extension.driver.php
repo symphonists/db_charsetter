@@ -96,7 +96,7 @@
 			$this->__convertCharSet('binary');
 			$this->__setDatabaseCharSet('utf8', 'utf8_unicode_ci');
 			$this->__convertCharSet('utf8', 'utf8_unicode_ci');
-			$this->__repairFields();
+			$this->__modifyFields('utf8', 'utf8_unicode_ci');
 			$this->__optimize();
 
 			$this->message = "Character Set Migration complete. " . $this->table_count . " tables edited, with " . $this->field_count . " fields in total.";
@@ -207,14 +207,21 @@
 			}
 		}
 
-		private function __repairFields(){
+		private function __modifyFields($set, $collation = NULL){
 			if(!empty($this->fields))
 			{
 				foreach($this->fields as $table => $fields)
 				{
 					foreach($fields as $field => $options)
 					{
-						$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET utf8 COLLATION utf8_unicode_ci';
+						if(!isset($collation))
+						{
+							$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET ' . $set;
+						}
+						else
+						{
+							$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET ' . $set . ' COLLATE ' . $collation;
+						}
 
 						if(!Symphony::Database()->query($sql))
 						{
