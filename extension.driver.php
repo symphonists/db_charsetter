@@ -94,7 +94,7 @@
 			$this->__retreiveFields();
 
 			$this->__convertCharSet('binary');
-			$this->__convertDatabase('utf8');
+			$this->__setDatabaseCharSet('utf8');
 			$this->__convertCharSet('utf8', 'utf8_unicode_ci');
 			$this->__repairFields();
 			$this->__optimize();
@@ -195,7 +195,7 @@
 			}
 		}
 
-		private function __convertDatabase($set)
+		private function __setDatabaseCharSet($set)
 		{
 			$dbname = Symphony::Configuration()->get('db', 'database');
 
