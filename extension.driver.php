@@ -94,9 +94,9 @@
 			$this->__retreiveFields();
 
 			$this->__convertCharSet('binary');
-			$this->__convertDatabase('utf8');
-			$this->__convertCharSet('utf8', true);
-			$this->__repairFields();
+			$this->__setDatabaseCharSet('utf8', 'utf8_unicode_ci');
+			$this->__convertCharSet('utf8', 'utf8_unicode_ci');
+			$this->__modifyFields('utf8', 'utf8_unicode_ci');
 			$this->__optimize();
 
 			$this->message = "Character Set Migration complete. " . $this->table_count . " tables edited, with " . $this->field_count . " fields in total.";
@@ -168,53 +168,60 @@
 			}
 		}
 
-		private function __convertCharSet($set, $collation = null){
+		private function __convertCharSet($set, $collation = NULL){
 			if(!empty($this->tables))
 			{
 				foreach($this->tables as $table)
 				{
-					if(is_null($collation))
+					if(!isset($collation))
 					{
 						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set;
-
-						if(!Symphony::Database()->query($sql))
-						{
-							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
-						}
 					}
-					elseif($collation == true)
+					else
 					{
-						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
-
-						if(!Symphony::Database()->query($sql))
-						{
-							Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
-						}
+						$sql = 'ALTER TABLE ' . $table . ' CONVERT TO CHARACTER SET ' . $set . ' COLLATE ' . $collation;
+					}
+					if(!Symphony::Database()->query($sql))
+					{
+						Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 					}
 				}
 			}
 		}
 
-		private function __convertDatabase($set)
+		private function __setDatabaseCharSet($set, $collation = NULL)
 		{
 			$dbname = Symphony::Configuration()->get('db', 'database');
 
-			$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set . ' COLLATE utf8_unicode_ci';
-
+			if(!isset($collation))
+			{
+				$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set;
+			}
+			else
+			{
+				$sql = 'ALTER DATABASE ' . $dbname . ' CHARACTER SET ' . $set . ' COLLATE ' . $collation;
+			}
 			if(!Symphony::Database()->query($sql))
 			{
 				Symphony::Log()->writeToLog('Database Character Setter: Change failed on ' . $sql, true);
 			}
 		}
 
-		private function __repairFields(){
+		private function __modifyFields($set, $collation = NULL){
 			if(!empty($this->fields))
 			{
 				foreach($this->fields as $table => $fields)
 				{
 					foreach($fields as $field => $options)
 					{
-						$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET utf8 COLLATION utf8_unicode_ci';
+						if(!isset($collation))
+						{
+							$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET ' . $set;
+						}
+						else
+						{
+							$sql = 'ALTER TABLE ' . $table . ' MODIFY ' . $field . ' ' . $options . ' CHARACTER SET ' . $set . ' COLLATE ' . $collation;
+						}
 
 						if(!Symphony::Database()->query($sql))
 						{
