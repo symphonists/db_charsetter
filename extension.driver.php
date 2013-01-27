@@ -15,7 +15,7 @@
 		public $check_message	= null;
 
 		/**
-		 * Subscibe to delegates
+		 * Subscribe to delegates
 		 * @return array
 		 */
 		public function getSubscribedDelegates(){
